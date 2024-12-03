@@ -1,0 +1,19 @@
+version: '3'
+services:
+  stream_vault_server:
+    container_name: stream_vault_server
+    build: .
+    environment:
+      - NODE_ENV=prod
+    ports:
+      - 1338:1338
+    expose:
+      - 1338
+    volumes:
+      - ./movies:/app/movies
+    networks:
+      - stream_network
+
+networks:
+  stream_network:
+    external: true

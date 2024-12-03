@@ -1,0 +1,26 @@
+{
+	"name": "stream_vault_server",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "tsc",
+		"start": "npm run build && node ./build/index.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"axios": "^1.7.8",
+		"chokidar": "^4.0.1",
+		"express": "^4.21.1",
+		"name-to-imdb": "^3.0.4"
+	},
+	"devDependencies": {
+		"@types/cors": "^2.8.17",
+		"@types/express": "^5.0.0",
+		"@types/needle": "^3.3.0",
+		"typescript": "^5.7.2"
+	}
+}
