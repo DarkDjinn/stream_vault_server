@@ -21,13 +21,15 @@ export class MovieService {
 			persistent: true,
 			ignoreInitial: true,
 		});
-		watcher.on('add', filePath => this.processNewMovie(filePath));
+		watcher.on('add', filePath => {
+			if (typeof filePath === 'string') this.processNewMovie(filePath);
+		});
 		watcher.on('unlink', filePath => {
-			this.removeMovieFromCache(filePath);
+			if (typeof filePath === 'string') this.removeMovieFromCache(filePath);
 		});
 		watcher.on('change', filePath => {
-			this.removeMovieFromCache(filePath);
-			this.processNewMovie(filePath);
+			if (typeof filePath === 'string') this.removeMovieFromCache(filePath);
+			if (typeof filePath === 'string') this.processNewMovie(filePath);
 		});
 	}
 
