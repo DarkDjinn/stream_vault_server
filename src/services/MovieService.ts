@@ -112,7 +112,9 @@ export class MovieService {
 	};
 
 	fetchSubtitles = async (movieId: string) => {
-		const outputDir = path.dirname(this.movieCache[movieId].filePath).replace('/movies/', '/subs/');
+		const outputDir = path
+			.dirname(path.resolve(__dirname, this.movieCache[movieId].filePath))
+			.replace('/movies/', '/subs/');
 		if (!fs.existsSync(outputDir) || !fs.readdirSync(outputDir).length) {
 			fs.mkdirSync(outputDir, { recursive: true });
 			const imdbId = this.movieCache[movieId].imdb_id;
