@@ -1,11 +1,17 @@
 export interface Config {
 	dev: {
+		APP_URL: string;
 		PORT: number;
 		AUTH_CODE: string;
+		SUBDL_API_KEY: string;
+		ENV: string;
 	};
 	prod: {
+		APP_URL: string;
 		PORT: number;
 		AUTH_CODE: string;
+		SUBDL_API_KEY: string;
+		ENV: string;
 	};
 }
 
@@ -59,4 +65,45 @@ export interface MovieMeta {
 		defaultVideoId: string;
 		hasScheduledVideos: boolean;
 	};
+}
+
+export interface Subtitle {
+	release_name: string;
+	name: string;
+	lang: string;
+	author: string;
+	url: string;
+	subtitlePage: string;
+	season: number;
+	episode: number | null;
+	language: string;
+	hi: boolean;
+	episode_from: number | null;
+	episode_end: number;
+	full_season: boolean;
+}
+
+interface Result {
+	sd_id: number;
+	type: string;
+	name: string;
+	imdb_id: string;
+	tmdb_id: number;
+	first_air_date: string | null;
+	release_date: string;
+	year: number;
+}
+
+export interface SubtitleResponse {
+	status: boolean;
+	results: Result[];
+	subtitles: Subtitle[];
+	totalPages: number;
+	currentPage: number;
+}
+
+export interface SubtitleURL {
+	id: string;
+	lang: string;
+	url: string;
 }

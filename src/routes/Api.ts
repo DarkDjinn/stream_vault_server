@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import { MovieService } from '../services/MovieService';
+import path from 'path';
+import config from '../config';
 
 const router = express.Router();
 const movieService = new MovieService();
@@ -10,6 +12,43 @@ router.get('/api/movies', (req: Request, res: Response): void => {
 		movieId => movieService.movieCache[movieId]
 	);
 	res.json(movieList);
+});
+
+router.get('/api/subtitles/:id', async (req: Request, res: Response): Promise<void> => {
+	const { id } = req.params;
+	res.json(movieService.subtitleCache[id]);
+});
+
+router.get('/api/subtitle-file', (req: Request, res: Response) => {
+	const filePath = decodeURIComponent(req.query.path as string);
+
+	if (config.ENV === 'dev') {
+		res.setHeader('Access-Control-Allow-Origin', '*');
+		res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+		res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+	}
+
+	if (!filePath || !fs.existsSync(filePath)) {
+		console.warn(`Subtitle file not found: ${filePath}`);
+		res.status(404).json({ error: 'Subtitle file not found' });
+		return;
+	}
+
+	const validExtensions = ['.srt', '.vtt'];
+	const ext = path.extname(filePath).toLowerCase();
+	if (!validExtensions.includes(ext)) {
+		console.warn(`Invalid subtitle file type: ${filePath}`);
+		res.status(400).json({ error: 'Invalid subtitle file type' });
+		return;
+	}
+
+	const contentType = ext === '.srt' ? 'text/srt' : 'text/vtt';
+
+	res.setHeader('Content-Type', contentType);
+	res.setHeader('Content-Disposition', `inline; filename="${path.basename(filePath)}"`);
+
+	const fileStream = fs.createReadStream(filePath);
+	fileStream.pipe(res);
 });
 
 router.get('/api/stream/:id', (req: Request, res: Response): void => {

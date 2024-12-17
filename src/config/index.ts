@@ -1,16 +1,23 @@
 import { Config } from '../interfaces';
 
-const env = (process.env.NODE_ENV || 'dev') as keyof Config;
+const ENV = (process.env.NODE_ENV || 'dev') as keyof Config;
+const PORT = 1338;
 
 const config: Config = {
 	dev: {
-		PORT: 1338,
+		APP_URL: '',
+		PORT,
 		AUTH_CODE: '',
+		SUBDL_API_KEY: '',
+		ENV,
 	},
 	prod: {
-		PORT: 1338,
+		APP_URL: '',
+		PORT,
 		AUTH_CODE: '',
+		SUBDL_API_KEY: '',
+		ENV,
 	},
 };
 
-export default config[env];
+export default config[ENV];
