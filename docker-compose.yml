@@ -11,6 +11,7 @@ services:
       - 1338
     volumes:
       - ./movies:/app/movies
+      - ./subs:/app/subs
     networks:
       - stream_network
 
