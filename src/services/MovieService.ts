@@ -60,7 +60,7 @@ export class MovieService {
 			if (!this.movieCache[movieId]) {
 				const movieTitle = movieId
 					.replace(
-						/(\d{3,4}p|HDRip|BluRay|x264|x265|HEVC|WEBRip|WEB-DL|DVDRip|HQ|10bit|1080p|720p|[\[\]();-]+|\b(\d{4})\b|GalaxyRG|TGx|RARBG|YTS|CD\d*|Part\d*|[0-9]+(MB|GB|KB))+/gi,
+						/(\d{3,4}p|HDRip|BluRay|x264|x265|HEVC|WEBRip|WEB-DL|DVDRip|HQ|10bit|1080p|720p|[\[\]();-]+|\b(\d{4})\b|GalaxyRG|LiNKLE|TGx|RARBG|YTS|CD\d*|Part\d*|[0-9]+(MB|GB|KB))+/gi,
 						''
 					)
 					.replace(/[_.]/g, ' ')
@@ -82,21 +82,38 @@ export class MovieService {
 		nameToImdb(movieTitle, async (err, imdbId, inf) => {
 			if (err) {
 				console.error(`Error fetching IMDB info for ${movieTitle}:`, err);
-			} else if (imdbId) {
-				await this.fetchMetaDataAndInsertToCache(imdbId, movieId, filePath);
 			}
+			await this.fetchMetaDataAndInsertToCache(imdbId, movieId, movieTitle, filePath);
 		});
 	};
 
-	fetchMetaDataAndInsertToCache = async (imdbId: string, movieId: string, filePath: string) => {
-		let meta = {} as MovieMeta;
-		for (let type of ['movie', 'series']) {
-			const { data } = await axios.get(
-				'https://v3-cinemeta.strem.io/meta/' + type + '/' + imdbId + '.json'
-			);
-			if (data && data.meta) {
-				meta = data.meta;
-				break;
+	fetchMetaDataAndInsertToCache = async (
+		imdbId: string | null,
+		movieId: string,
+		movieTitle: string,
+		filePath: string
+	) => {
+		let meta = {
+			name: movieTitle,
+			background: '',
+			logo: '',
+			type: 'movie',
+			poster: '',
+			description: 'Not found on IMDB',
+		} as MovieMeta;
+		if (imdbId) {
+			for (let type of ['movie', 'series']) {
+				try {
+					const { data } = await axios.get(
+						'https://v3-cinemeta.strem.io/meta/' + type + '/' + imdbId + '.json'
+					);
+					if (data && data.meta) {
+						meta = data.meta;
+						break;
+					}
+				} catch (e) {
+					console.error(`Error fetching metadata for movie ${movieTitle}:`, e);
+				}
 			}
 		}
 		this.movieCache[movieId] = {
@@ -106,7 +123,7 @@ export class MovieService {
 			filePath,
 		};
 
-		if (!this.subtitleCache[movieId]) {
+		if (imdbId && !this.subtitleCache[movieId]) {
 			await this.fetchSubtitles(movieId);
 		}
 	};
