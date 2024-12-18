@@ -14,6 +14,7 @@ services:
       - ./subs:/app/subs
     networks:
       - stream_network
+    restart: always
 
 networks:
   stream_network:
