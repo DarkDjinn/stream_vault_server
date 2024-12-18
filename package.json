@@ -15,12 +15,14 @@
 		"axios": "^1.7.8",
 		"chokidar": "^4.0.1",
 		"express": "^4.21.1",
+		"jsonwebtoken": "^9.0.2",
 		"name-to-imdb": "^3.0.4",
 		"unzipper": "^0.12.3"
 	},
 	"devDependencies": {
 		"@types/cors": "^2.8.17",
 		"@types/express": "^5.0.0",
+		"@types/jsonwebtoken": "^9.0.7",
 		"@types/needle": "^3.3.0",
 		"@types/unzipper": "^0.10.10",
 		"typescript": "^5.7.2"
