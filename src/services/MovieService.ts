@@ -238,9 +238,7 @@ export class MovieService {
 		const filePaths = subtitleFiles.map(file => ({
 			id: path.basename(file),
 			lang: 'en',
-			url: `${config.APP_URL}/api/subtitle-file?path=${encodeURIComponent(
-				path.join(dir, file)
-			)}&code=${config.AUTH_CODE}`,
+			url: `${config.APP_URL}/api/subtitle-file?path=${encodeURIComponent(path.join(dir, file))}`,
 		}));
 
 		return filePaths;
