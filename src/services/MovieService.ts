@@ -115,10 +115,8 @@ export class MovieService {
 
 		if (this.supportedFormats.includes(fileExt)) {
 			const movieId = path.basename(fullPath, fileExt);
-			if (!this.movieCache[movieId]) {
-				const movieTitle = this.cleanMovieName(movieId);
-				this.fetchImdbData(movieTitle, movieId, fullPath);
-			}
+			const movieTitle = this.cleanMovieName(movieId);
+			this.fetchImdbData(movieTitle, movieId, fullPath);
 		}
 	};
 
@@ -134,13 +132,16 @@ export class MovieService {
 			if (err) {
 				console.error(`Error fetching IMDB info for ${movieTitle}:`, err);
 			}
-			await this.fetchMetaDataAndInsertToCache(imdbId, movieId, movieTitle, filePath);
+			const moviedCacheID = imdbId || movieId;
+			if (!this.movieCache[moviedCacheID]) {
+				await this.fetchMetaDataAndInsertToCache(imdbId, moviedCacheID, movieTitle, filePath);
+			}
 		});
 	};
 
 	fetchMetaDataAndInsertToCache = async (
 		imdbId: string | null,
-		movieId: string,
+		movieCacheId: string,
 		movieTitle: string,
 		filePath: string
 	) => {
@@ -168,15 +169,15 @@ export class MovieService {
 				}
 			}
 		}
-		this.movieCache[movieId] = {
+		this.movieCache[movieCacheId] = {
 			...meta,
-			behaviorHints: { ...meta.behaviorHints, defaultVideoId: movieId },
-			id: movieId, // Local Id
+			behaviorHints: { ...meta.behaviorHints, defaultVideoId: movieCacheId },
+			id: movieCacheId,
 			filePath,
 		};
 
-		if (imdbId && !this.subtitleCache[movieId]) {
-			await this.fetchSubtitles(movieId);
+		if (imdbId && !this.subtitleCache[movieCacheId]) {
+			await this.fetchSubtitles(movieCacheId);
 		}
 	};
 
