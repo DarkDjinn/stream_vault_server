@@ -183,7 +183,7 @@ export class MovieService {
 	fetchSubtitles = async (movieId: string) => {
 		const outputDir = path
 			.dirname(path.resolve(__dirname, this.movieCache[movieId].filePath))
-			.replace('/movies/', '/subs/');
+			.replace('/movies', '/subs');
 		if (!fs.existsSync(outputDir) || !fs.readdirSync(outputDir).length) {
 			fs.mkdirSync(outputDir, { recursive: true });
 			const imdbId = this.movieCache[movieId].imdb_id;
@@ -195,12 +195,12 @@ export class MovieService {
 					const { data } = await axios.get<SubtitleResponse>(
 						`https://api.subdl.com/api/v1/subtitles?api_key=${config.SUBDL_API_KEY}&imdb_id=${imdbId}&languages=en&subs_per_page=30&page=${page}`
 					);
+					if (!data.status || !data.subtitles.length) {
+						break;
+					}
 					totalPages = data.totalPages;
 					subtitles.push(...data.subtitles);
 					page++;
-					if (!data.subtitles.length) {
-						break;
-					}
 				}
 				for (let sub of subtitles) {
 					await this.saveSubtitles(`https://dl.subdl.com${sub.url}`, outputDir);
