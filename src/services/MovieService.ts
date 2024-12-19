@@ -52,19 +52,71 @@ export class MovieService {
 		walkDirectory(this.movieFolder);
 	};
 
+	cleanMovieName = (name: string) => {
+		return (
+			name
+				// First remove obvious release tags
+				.replace(/\[.*?\]/g, '')
+				.replace(/\(.*?\)/g, '')
+
+				// Remove episode identifiers
+				.replace(/\.?[SE]\d+[Ex]\d+/gi, '')
+
+				// Remove date stamps (but not standalone years)
+				.replace(/\b\d{4}\.\d{2}\.\d{2}\b/g, '')
+				.replace(/\b\d{2}\.\d{2}\.\d{4}\b/g, '')
+
+				// Remove technical specifications and release groups
+				// Order is important here - more specific patterns first
+				.replace(/\bH\.?264\b/gi, '') // Handle H.264 specifically
+				.replace(/\b(?:DD|AAC|DTS)?5\.1\b/gi, '') // Handle 5.1 audio specifically
+				.replace(/\bAAC\d*\b/gi, '') // Handle AAC specifically
+				.replace(/\bMVGroup\b/gi, '') // Remove MVGroup specifically
+
+				// Handle broader technical specifications
+				.replace(
+					/\b(?:\d{3,4}[pi]|(?:480|720|1080|2160)[pi]|HDTV|HD|UHD|BRRip|BluRay|WEBRip|WEB-DL|DVDRip|DVDR|DVD|WEB|Blu-Ray)\b/gi,
+					''
+				)
+				.replace(
+					/\b(?:x264|x265|HEVC|XviD|DivX|MP4|AC3|DTS|DDP?5\.1|10bit)\b(?:\.[A-Za-z0-9]+)?/gi,
+					''
+				)
+				.replace(/\b(?:REMASTERED|EXTENDED|UNRATED|PROPER|REPACK|IMAX)\b/gi, '')
+
+				// Remove file size info
+				.replace(/\b\d+(?:\.\d+)?(?:MB|GB|mb|gb)\b/gi, '')
+
+				// Remove quality indicators
+				.replace(/\b(?:HQ|HDR|SDR)\b/gi, '')
+
+				// Remove common file extensions
+				.replace(/\.\b(?:mkv|avi|mp4|mov|wmv|flv|webm|m4v|mpg|mpeg)\b/gi, '')
+
+				// Remove domain suffixes
+				.replace(/\.[a-z]{2,6}$/gi, '')
+
+				// Remove release group signatures (must come after other cleanups)
+				.replace(/-[A-Za-z0-9]+(?:\[.*?\])?$/g, '')
+
+				// Clean up dots, spaces, and unwanted characters
+				.replace(/\./g, ' ')
+				.replace(/\s*-\s*/g, ' ')
+				.replace(/\s*,\s*/g, ' ')
+				.replace(/\s+/g, ' ')
+
+				// Final cleanup
+				.trim()
+		);
+	};
+
 	private processNewMovie = (fullPath: string) => {
 		const fileExt = path.extname(fullPath).toLowerCase();
 
 		if (this.supportedFormats.includes(fileExt)) {
 			const movieId = path.basename(fullPath, fileExt);
 			if (!this.movieCache[movieId]) {
-				const movieTitle = movieId
-					.replace(
-						/^(.*?)(?:\.\d{4}|\.S\d+E\d+|\.720p|\.1080p|\.HDTV|\.BluRay|\.x264|\.x265|\.AAC|\.DTS|\.AC3|\.DD5\.1|-[A-Za-z0-9]+|\.MVGroup|\.org|\.sample)*$/gi,
-						'$1'
-					)
-					.replace(/\./g, ' ')
-					.trim();
+				const movieTitle = this.cleanMovieName(movieId);
 				this.fetchImdbData(movieTitle, movieId, fullPath);
 			}
 		}
