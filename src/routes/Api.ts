@@ -17,7 +17,7 @@ router.get('/api/movies', (req: Request, res: Response): void => {
 router.get('/api/subtitles/:id', async (req: Request, res: Response): Promise<void> => {
 	const { id } = req.params;
 	res.json(
-		movieService.subtitleCache[id].map(sub => ({
+		(movieService.subtitleCache[id] || []).map(sub => ({
 			...sub,
 			url: `${sub.url}&token=${req.query.token}`,
 		}))
