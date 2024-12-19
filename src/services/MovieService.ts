@@ -60,12 +60,11 @@ export class MovieService {
 			if (!this.movieCache[movieId]) {
 				const movieTitle = movieId
 					.replace(
-						/(\d{3,4}p|HDRip|BluRay|x264|x265|HEVC|WEBRip|WEB-DL|DVDRip|HQ|10bit|1080p|720p|[\[\]();-]+|\b(\d{4})\b|GalaxyRG|LiNKLE|TGx|RARBG|YTS|CD\d*|Part\d*|[0-9]+(MB|GB|KB))+/gi,
-						''
+						/^(.*?)(?:\.\d{4}|\.S\d+E\d+|\.720p|\.1080p|\.HDTV|\.BluRay|\.x264|\.x265|\.AAC|\.DTS|\.AC3|\.DD5\.1|-[A-Za-z0-9]+|\.MVGroup|\.org|\.sample)*$/gi,
+						'$1'
 					)
-					.replace(/[_.]/g, ' ')
-					.trim()
-					.replace(/\s+/g, ' ');
+					.replace(/\./g, ' ')
+					.trim();
 				this.fetchImdbData(movieTitle, movieId, fullPath);
 			}
 		}
@@ -113,6 +112,7 @@ export class MovieService {
 					}
 				} catch (e) {
 					console.error(`Error fetching metadata for movie ${movieTitle}:`, e);
+					break;
 				}
 			}
 		}
