@@ -8,9 +8,9 @@ const router = express.Router();
 const movieService = new MovieService();
 
 router.get('/api/movies', (req: Request, res: Response): void => {
-	const movieList = Object.keys(movieService.movieCache).map(
-		movieId => movieService.movieCache[movieId]
-	);
+	const movieList = Object.keys(movieService.movieCache)
+		.map(movieId => movieService.movieCache[movieId])
+		.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 	res.json(movieList);
 });
 
