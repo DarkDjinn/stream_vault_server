@@ -59,9 +59,6 @@ export class MovieService {
 				.replace(/\[.*?\]/g, '')
 				.replace(/\(.*?\)/g, '')
 
-				// Remove episode identifiers
-				.replace(/\.?[SE]\d+[Ex]\d+/gi, '')
-
 				// Remove date stamps (but not standalone years)
 				.replace(/\b\d{4}\.\d{2}\.\d{2}\b/g, '')
 				.replace(/\b\d{2}\.\d{2}\.\d{4}\b/g, '')
@@ -132,9 +129,9 @@ export class MovieService {
 			if (err) {
 				console.error(`Error fetching IMDB info for ${movieTitle}:`, err);
 			}
-			const moviedCacheID = imdbId || movieId;
-			if (!this.movieCache[moviedCacheID]) {
-				await this.fetchMetaDataAndInsertToCache(imdbId, moviedCacheID, movieTitle, filePath);
+			const movieCacheId = imdbId || movieId;
+			if (!this.movieCache[movieCacheId]) {
+				await this.fetchMetaDataAndInsertToCache(imdbId, movieCacheId, movieTitle, filePath);
 			}
 		});
 	};
@@ -153,28 +150,32 @@ export class MovieService {
 			poster: '',
 			description: 'Not found on IMDB',
 		} as MovieMeta;
+		const match = movieTitle.match(/S(\d{2})E(\d{2})/i);
 		if (imdbId) {
-			for (let type of ['movie', 'series']) {
-				try {
-					const { data } = await axios.get(
-						'https://v3-cinemeta.strem.io/meta/' + type + '/' + imdbId + '.json'
-					);
-					if (data && data.meta) {
-						meta = data.meta;
-						break;
-					}
-				} catch (e) {
-					console.error(`Error fetching metadata for movie ${movieTitle}:`, e);
-					break;
+			const type = match ? 'series' : 'movie';
+			try {
+				const { data } = await axios.get(
+					'https://v3-cinemeta.strem.io/meta/' + type + '/' + imdbId + '.json'
+				);
+				if (data && data.meta) {
+					meta = data.meta;
 				}
+			} catch (e) {
+				console.error(`Error fetching metadata for movie ${movieTitle}:`, e);
 			}
 		}
-		this.movieCache[movieCacheId] = {
+		const movieMeta = {
 			...meta,
 			behaviorHints: { ...meta.behaviorHints, defaultVideoId: movieCacheId },
 			id: movieCacheId,
 			filePath,
 		};
+		if (match) {
+			const season = parseInt(match[1], 10);
+			const episode = parseInt(match[2], 10);
+			movieCacheId += `:${season}:${episode}`;
+		}
+		this.movieCache[movieCacheId] = movieMeta;
 
 		if (imdbId && !this.subtitleCache[movieCacheId]) {
 			await this.fetchSubtitles(movieCacheId);
