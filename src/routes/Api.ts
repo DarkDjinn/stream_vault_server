@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
-import { MovieService } from '../services/MovieService';
+import { MovieService } from '../services/MovieService.js';
 import path from 'path';
-import config from '../config';
+import config from '../config/index.js';
 
 const router = express.Router();
 const movieService = new MovieService();

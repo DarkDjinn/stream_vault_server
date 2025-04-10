@@ -1,7 +1,7 @@
 import express from 'express';
-import apiRouter from './routes/Api';
-import config from './config';
-import authMiddleware from './middleware/Auth';
+import apiRouter from './routes/Api.js';
+import config from './config/index.js';
+import authMiddleware from './middleware/Auth.js';
 
 const app = express();
 app.use(authMiddleware);

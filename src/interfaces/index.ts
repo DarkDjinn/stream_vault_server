@@ -107,3 +107,23 @@ export interface SubtitleURL {
 	lang: string;
 	url: string;
 }
+
+export interface GroupedEntry {
+	id: number;
+	startTime: number;
+	endTime: number;
+	text: string;
+}
+
+export interface SubtitleEntry {
+	startTime: number;
+	endTime: number;
+	text: string;
+}
+
+export interface SubtitleGroup {
+	id: number;
+	startTime: number;
+	endTime: number;
+	text: string;
+}

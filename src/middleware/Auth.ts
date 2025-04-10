@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import config from '../config';
+import config from '../config/index.js';
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
 	const token = req.query.token as string;
