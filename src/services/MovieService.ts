@@ -291,13 +291,26 @@ export class MovieService {
 			const generatedSrtPath = path.join(dir, `${name}.wav.srt`);
 
 			if (fs.existsSync(generatedSrtPath)) {
-				fs.renameSync(generatedSrtPath, outputSubtitlePath);
+				this.moveFileSync(generatedSrtPath, outputSubtitlePath);
 				this.processSRTFile(outputSubtitlePath);
 			} else {
 				throw new Error(`Expected SRT file not found at ${generatedSrtPath}`);
 			}
 		} catch (error) {
 			console.error(`Error generating subtitles with Whisper for ${movieId}:`, error);
+		}
+	}
+
+	private moveFileSync(src: string, dest: string) {
+		try {
+			fs.renameSync(src, dest);
+		} catch (err: any) {
+			if (err.code === 'EXDEV') {
+				fs.copyFileSync(src, dest);
+				fs.unlinkSync(src);
+			} else {
+				throw err;
+			}
 		}
 	}
 
