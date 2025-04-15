@@ -27,41 +27,69 @@ export class MovieService {
 		[x: string]: SubtitleURL[];
 	} = {};
 	movieFolder = path.join(__dirname, '..', '..', 'movies');
+	private movieQueue: string[] = [];
+	private isProcessing = false;
 
 	constructor() {
 		this.initializeMovies();
+
 		const watcher = chokidar.watch(this.movieFolder, {
 			persistent: true,
 			ignoreInitial: true,
 		});
+
 		watcher.on('add', filePath => {
-			if (typeof filePath === 'string') this.processNewMovie(filePath);
+			if (typeof filePath === 'string') {
+				this.enqueueMovie(filePath);
+			}
 		});
+
 		watcher.on('unlink', filePath => {
 			if (typeof filePath === 'string') this.removeMovieFromCache(filePath);
 		});
+
 		watcher.on('change', filePath => {
 			if (typeof filePath === 'string') this.removeMovieFromCache(filePath);
-			if (typeof filePath === 'string') this.processNewMovie(filePath);
+			if (typeof filePath === 'string') this.enqueueMovie(filePath);
 		});
+	}
+
+	private enqueueMovie(filePath: string) {
+		this.movieQueue.push(filePath);
+		this.processQueue();
+	}
+
+	private async processQueue() {
+		if (this.isProcessing) return;
+		this.isProcessing = true;
+
+		while (this.movieQueue.length > 0) {
+			const nextFile = this.movieQueue.shift();
+			if (nextFile) {
+				try {
+					await this.processNewMovie(nextFile);
+				} catch (err) {
+					console.error(`Failed to process ${nextFile}:`, err);
+				}
+			}
+		}
+
+		this.isProcessing = false;
 	}
 
 	private initializeMovies = () => {
 		const walkDirectory = (dir: string) => {
 			const files = fs.readdirSync(dir);
-
 			for (let file of files) {
 				const fullPath = path.join(dir, file);
 				const stat = fs.statSync(fullPath);
-
 				if (stat.isDirectory()) {
 					walkDirectory(fullPath);
 				} else if (stat.isFile()) {
-					this.processNewMovie(fullPath);
+					this.enqueueMovie(fullPath);
 				}
 			}
 		};
-
 		walkDirectory(this.movieFolder);
 	};
 
@@ -120,15 +148,15 @@ export class MovieService {
 		);
 	};
 
-	private processNewMovie = (fullPath: string) => {
+	private async processNewMovie(fullPath: string): Promise<void> {
 		const fileExt = path.extname(fullPath).toLowerCase();
 
 		if (this.supportedFormats.includes(fileExt)) {
 			const movieId = path.basename(fullPath, fileExt);
 			const movieTitle = this.cleanMovieName(movieId);
-			this.fetchImdbData(movieTitle, movieId, fullPath);
+			await this.fetchImdbData(movieTitle, movieId, fullPath);
 		}
-	};
+	}
 
 	removeMovieFromCache = (filePath: string) => {
 		const movieId = Object.keys(this.movieCache).find(
@@ -138,14 +166,17 @@ export class MovieService {
 	};
 
 	fetchImdbData = (movieTitle: string, movieId: string, filePath: string) => {
-		nameToImdb(movieTitle, async (err, imdbId, inf) => {
-			if (err) {
-				console.error(`Error fetching IMDB info for ${movieTitle}:`, err);
-			}
-			const movieCacheId = imdbId || movieId;
-			if (!this.movieCache[movieCacheId]) {
-				await this.fetchMetaDataAndInsertToCache(imdbId, movieCacheId, movieTitle, filePath);
-			}
+		return new Promise<void>((resolve, reject) => {
+			nameToImdb(movieTitle, async (err, imdbId, inf) => {
+				if (err) {
+					console.error(`Error fetching IMDB info for ${movieTitle}:`, err);
+				}
+				const movieCacheId = imdbId || movieId;
+				if (!this.movieCache[movieCacheId]) {
+					await this.fetchMetaDataAndInsertToCache(imdbId, movieCacheId, movieTitle, filePath);
+				}
+				resolve();
+			});
 		});
 	};
 
