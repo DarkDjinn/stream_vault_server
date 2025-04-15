@@ -1,5 +1,7 @@
 FROM node:16-alpine
 
+RUN apk add --no-cache wget build-base cmake git ffmpeg
+
 WORKDIR /app
 
 COPY package.json ./

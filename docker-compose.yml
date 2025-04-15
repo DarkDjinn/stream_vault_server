@@ -12,9 +12,13 @@ services:
     volumes:
       - ./movies:/app/movies
       - ./subs:/app/subs
+      - whisper_models:/app/node_modules/nodejs-whisper/cpp/whisper.cpp/models
     networks:
       - stream_network
     restart: always
+
+volumes:
+  whisper_models:
 
 networks:
   stream_network:
