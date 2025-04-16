@@ -3,9 +3,13 @@ import fs from 'fs';
 import { MovieService } from '../services/MovieService.js';
 import path from 'path';
 import config from '../config/index.js';
+import { WhisperService } from '../services/WhisperService.js';
+import { SubtitleService } from '../services/SubtitleService.js';
 
 const router = express.Router();
-const movieService = new MovieService();
+const whisper = new WhisperService();
+const subtitles = new SubtitleService();
+const movieService = new MovieService(whisper, subtitles);
 
 router.get('/api/movies', (req: Request, res: Response): void => {
 	const movieList = Object.keys(movieService.movieCache)
